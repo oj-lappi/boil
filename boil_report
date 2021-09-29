@@ -1,0 +1,86 @@
+#!/bin/bash
+
+template_dir="$HOME/.tools/tex_templates"
+default_template=report.tex
+
+if [ -z "$1" ];
+then
+	echo "No filename given"
+	exit 1
+fi
+
+report_name="$1"
+
+if [ -z "$2" ]
+then
+	template="${template_dir}/${default_template}"
+	echo "Using default template $template"
+else
+	template="${template_dir}/$2"
+	if [ ! -f "$template" ]
+	then
+		echo "Template $template is not a regular file, exiting"
+		exit 2
+	fi
+fi
+
+
+
+#strip the suffix, if only one period
+
+ifs=${IFS};IFS='.'
+read bname ext <<< "${report_name}"
+IFS=${ifs}
+
+if expr "${ext}" : "\(tex\|pdf\)"
+then
+report_name="${bname}"
+fi
+
+tex_file="${report_name}.tex"
+pdf_file="${report_name}.pdf"
+
+if [ -e $pdf_file ]
+then
+	echo "Making backup of existing $pdf_file"
+	cp "${pdf_file}" "${pdf_file}.bak"
+fi
+
+touch "$pdf_file"
+
+mkdir -p img 
+
+if [ ! -e "$tex_file" ]
+then
+	echo "Copying $template to $tex_file"
+	cp "$template" "$tex_file"
+else
+	echo "${tex_file} already exists, not overwriting"
+fi
+
+makefile="${template_dir}/makefile"
+if [ -e makefile ]
+then
+	echo "Making copy of existing makefile to makefile.bak"
+	cp makefile makefile.bak
+fi
+
+#TODO: not escaping report_name here...
+
+echo "Copying ${makefile} to makefile"
+sed "s/{{DOCUMENT_NAME}}/${report_name}/g" "$makefile" > makefile
+
+make
+watch_report "${report_name}"
+
+#This below is what watch_report runs
+
+#i3-sensible-terminal -e "nvim -u ~/.vimrc ${tex_file}" &> /dev/null &
+#disown
+
+#i3-sensible-terminal -e "ls ${tex_file} | entr -src 'make' " &> /dev/null &
+#disown
+
+#xreader ${pdf_file} &> /dev/null & 
+#disown
+
