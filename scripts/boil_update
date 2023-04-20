@@ -1,0 +1,28 @@
+#!/bin/bash
+
+print_usage(){
+cat << EOF
+Usage:
+$(basename $0)
+
+Will update boil template repositories
+EOF
+}
+
+
+check_dependency(){
+	if [ -z "$(which $1)" ]; then
+		echo "UH OH, Missing dependency $1"
+		echo "Please install $1"
+		exit
+	fi
+}
+
+check_dependency git
+
+#Read rc file (prototype config file)
+config_path=$(boil_query --config-path)
+. "${config_path}/config"
+
+template_dir=$(boil_query --template-dir)
+git remote get

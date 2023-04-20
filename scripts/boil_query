@@ -1,0 +1,89 @@
+#!/bin/bash
+
+name=boil_query
+
+print_usage(){
+cat << EOF     
+Usage:                      
+        $name (--template-dir | --config-path | --config)
+                Query boil config for template directory, config path or full config
+        -h, --help
+                prints this help message
+EOF
+}
+
+#-o f: <- expects argument for f
+#-o h <- doesn't expect argument for h
+OPTS=`getopt -o htc --long help,template-dir,config-path,config -n "$name"  -- "$@"`
+if [ $? != 0 ] ; then echo "Failed to parse args" >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+set_config_dir() {
+    config_dir="$HOME/.config"
+    if [[ -d "$XDG_CONFIG_HOME" ]]; then
+        config_dir="$XDG_CONFIG_HOME"
+    fi
+}
+
+config_path(){
+    set_config_dir
+    printf "$config_dir/boil/\n"
+}
+
+config(){
+    set_config_dir
+    cfg_file="$config_dir/boil/config"
+    if [[ -e ${cfg_file} ]]; then
+        cat ${cfg_file}
+    else
+	printf "ERROR: No config file found at ${cfg_file}\n" >&2
+	exit 2
+    fi
+}
+
+
+template_dir(){
+    set_config_dir
+    cfg_path=$(config_path)
+    . ${config_path}/config
+
+    if [[ -d "$BOIL_TEMPLATE_DIR" ]]
+    then
+        template_dir="$(realpath $BOIL_TEMPLATE_DIR)"
+    else
+        template_dir="$config_dir/boil/templates"
+    fi
+
+    printf "$template_dir\n"
+}
+
+while true;do
+case "$1" in
+-h|--help)
+    print_usage
+    exit 0
+    ;;
+--config-path)
+    config_path
+    exit
+    ;;
+-c|--config)
+    config
+    exit
+    ;;
+-t|--template-dir)
+    template_dir
+    exit
+    ;;
+--)
+    shift
+    break
+    ;;
+*)
+    break
+    ;;
+esac
+shift
+done
+
+print_usage

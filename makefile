@@ -10,6 +10,7 @@ copy_templates:
 .PHONY: copy_scripts
 copy_scripts:
 	mkdir -p ${HOME}/.local/bin/; \
+	cp boil ${HOME}/.local/bin/boil_query \
 	cp boil ${HOME}/.local/bin/boil
 
 .PHONY: install
