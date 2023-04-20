@@ -11,7 +11,8 @@ EOF
 
 
 check_dependency(){
-	if [ -z "$(which $1)" ]; then
+	if [ -z "$(which $1)" ]
+	then
 		echo "UH OH, Missing dependency $1"
 		echo "Please install $1"
 		exit
@@ -25,4 +26,41 @@ config_path=$(boil_query --config-path)
 . "${config_path}/config"
 
 template_dir=$(boil_query --template-dir)
-git remote get
+
+if git -C ${template_dir} rev-parse --is-inside-work-tree &>/dev/null
+then
+    echo "Found existing template git repository..."
+    git_repo=$(git -C ${template_dir} remote get-url origin)
+    if [[ -n "${BOIL_TEMPLATE_REPO}" ]]
+    then
+        if [[ "${BOIL_TEMPLATE_REPO}" != "${git_repo}" ]]
+	then
+            echo "Existing template repository in ${template_dir} does not match configured repository ${BOIL_TEMPLATE_REPO}"
+	    echo "Delete the template directory in order to change to a new upstream repository"
+	    exit 0
+        fi
+    fi
+    echo "Updating template repository ${template_dir} from upstream ${git_repo}"
+    git -C ${template_dir} pull
+else
+    if [[ -z "${BOIL_TEMPLATE_REPO}" ]]
+    then
+        printf "ERROR:No existing template repository, nor is BOIL_TEMPLATE_REPO defined"
+        exit 2
+    fi
+ 
+    #Check if there is a git repo in template dir
+    if [[ -d "${template_dir}" ]]
+    then
+        echo "ERROR: Template directory ${template_dir} exists, but is not a git repository"
+	exit 4
+    else
+        echo "Template directory ${template_dir} does not exist"
+        echo "Cloning template repository ${BOIL_TEMPLATE_REPO} into ${template_dir}..."
+        git clone ${BOIL_TEMPLATE_REPO} ${template_dir}
+    fi
+fi 
+
+
+
+

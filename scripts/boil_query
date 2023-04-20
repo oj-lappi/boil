@@ -45,7 +45,7 @@ config(){
 template_dir(){
     set_config_dir
     cfg_path=$(config_path)
-    . ${config_path}/config
+    . ${cfg_path}/config
 
     if [[ -d "$BOIL_TEMPLATE_DIR" ]]
     then
