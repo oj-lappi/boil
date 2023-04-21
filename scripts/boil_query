@@ -28,8 +28,6 @@ Usage:
 EOF
 }
 
-#-o f: <- expects argument for f
-#-o h <- doesn't expect argument for h
 OPTS=`getopt -o htcug --long help,install-location,template-dir,global-config-path,user-config-path,global-config,user-config,config -n "$name"  -- "$@"`
 if [ $? != 0 ] ; then echo "Failed to parse args" >&2 ; exit 1 ; fi
 

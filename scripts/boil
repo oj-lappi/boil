@@ -5,9 +5,42 @@ cat << EOF
 Usage:
 $(basename $0) <project_name> <template_name>
 
-Will copy template from <template_name> to <project_name>
+    Will copy template from <template_name> to <project_name>
+
+$(basename $0) --list
+
+    Lists available templates in template directory $(boil_query -t)
 EOF
 }
+
+OPTS=`getopt -o hl --long help,list -n "$name"  -- "$@"`
+if [ $? != 0 ] ; then echo "Failed to parse args" >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
+
+while true;do
+case "$1" in
+-h|--help)
+    print_usage
+    exit 0
+    ;;
+-l|--list)
+    boil_list_templates
+    exit 0
+    ;;
+--)
+    shift
+    break
+    ;;
+*)
+    break
+    ;;
+esac
+shift
+done
+
+
 
 check_dependency(){
 	if [ -z "$(which $1)" ]; then
