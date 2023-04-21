@@ -24,8 +24,8 @@ check_dependency git
 #Read rc file (prototype config file)
 global_config_path=$(boil_query --global-config-path)
 user_config_path=$(boil_query --user-config-path)
-. "${global_config_path}/config"
-. "${user_config_path}/config"
+. "${global_config_path}" &>/dev/null
+. "${user_config_path}" &>/dev/null
 
 template_dir=$(boil_query --template-dir)
 
