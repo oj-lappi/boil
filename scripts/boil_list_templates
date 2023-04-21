@@ -46,29 +46,58 @@ else
     template_dir=$(boil_query --template-dir)
 fi
 
-manifest_filename=boil.manifest
+tmpl_manifest_file=boil.manifest
+tmpl_config_file=boil.toml
 
-if [[ ! -f ${template_dir}/${manifest_filename} ]]; then
-    printf "ERROR: ${template_dir} does not contain a ${manifest_filename} file\n"
+if [[ ! -f ${template_dir}/${tmpl_manifest_file} ]]; then
+    printf "ERROR: ${template_dir} does not contain a ${tmpl_manifest_file} file\n"
     exit 2
 fi
+
+#Copied from boil_stat
+stat_boil_type(){
+    boil_template="$1"
+    if [[ ! -e ${boil_template} ]]; then
+        printf "Path does not point to a file or directory"
+	return
+    fi
+
+    if [[ -f ${boil_template}/${tmpl_manifest_file} ]]; then
+	printf ""
+	#printf "Boil template collection"
+    elif [[ -f ${boil_template}/${tmpl_config_file} ]]; then
+	printf "Decorated boil file"
+    else
+    	if [[ -d ${boil_template} ]]; then
+	    printf "Tree"
+    	elif [[ -x ${boil_template} ]]; then
+	    printf "Executable"
+	else
+	    printf "File"
+	fi
+    fi
+
+}
 
 list_manifest(){
     indentation="                              "
     local template_dir="$1"
-    local manifest="${template_dir}/${manifest_filename}"
+    local manifest="${template_dir}/${tmpl_manifest_file}"
     local depth=$2
     while read entry type; do
 	if [[ -n "${entry}" ]];then
             printf " ${indentation:0:${depth}}- $entry"
             if [[ $type = "subtree" ]]; then
-		printf "/\n"
+		printf "/"
+	    fi
+	    printf " : "
+	    stat_boil_type "${template_dir}/${entry}"
+	    printf "\n"
+            if [[ $type = "subtree" ]]; then
                 list_manifest ${template_dir}/${entry} $(( depth + 2 ))
-            else
-		printf "\n"
-            fi
+	    fi
 	fi
-    done < ${template_dir}/${manifest_filename}
+    done < ${template_dir}/${tmpl_manifest_file}
 }
 
 printf "Templates in ${template_dir}/:\n"

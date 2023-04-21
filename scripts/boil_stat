@@ -71,18 +71,18 @@ stat_boil_template(){
     tmpl_config_file=boil.toml
 
     if [[ -f ${boil_template}/${tmpl_manifest_file} ]]; then
-	echo "${boil_template} : Boil template tree"
-        boil_list_templates ${boil_template}
+	printf "Boil template tree"
+        #boil_list_templates ${boil_template}
     elif [[ -f ${boil_template}/${tmpl_config_file} ]]; then
         #TODO: parse toml file
-	echo "${boil_template} : Boil template"
+	printf "Boil template"
     else
     	if [[ -d ${boil_template} ]]; then
-	    echo "${boil_template} : Regular directory"
+	    printf "Regular directory"
     	elif [[ -x ${boil_template} ]]; then
-	    echo "${boil_template} : Executable file"
+	    printf "Executable file"
 	else
-	    echo "${boil_tempalte} : Regular file"
+	    printf "Regular file"
 	fi
     fi
 }
