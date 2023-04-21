@@ -67,9 +67,13 @@ stat_boil_template(){
 	exit 2
     fi
 
+    tmpl_manifest_file=boil.manifest
     tmpl_config_file=boil.toml
 
-    if [[ -f ${boil_template}/${tmpl_config_file} ]]; then
+    if [[ -f ${boil_template}/${tmpl_manifest_file} ]]; then
+	echo "${boil_template} : Boil template tree"
+        boil_list_templates ${boil_template}
+    elif [[ -f ${boil_template}/${tmpl_config_file} ]]; then
         #TODO: parse toml file
 	echo "${boil_template} : Boil template"
     else

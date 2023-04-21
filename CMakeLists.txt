@@ -6,6 +6,7 @@ set(BOIL_SCRIPTS
     scripts/boil_query
     scripts/boil_update
     scripts/boil_stat
+    scripts/boil_list_templates
 )
 
 #Install the executables

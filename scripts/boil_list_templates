@@ -1,0 +1,76 @@
+#!/bin/bash
+
+name=boil_list_templates
+
+print_usage(){
+cat << EOF     
+Usage:                      
+	$name [template_dir]
+		List the templates in template dir (default: $(boil_query --template-dir))
+        -h, --help
+                prints this help message
+EOF
+}
+
+OPTS=`getopt -o h --long help -n "$name"  -- "$@"`
+if [ $? != 0 ] ; then echo "Failed to parse args" >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
+while true;do
+case "$1" in
+-h|--help)
+	print_usage
+	exit 0
+	;;
+--)
+	shift
+	break
+	;;
+*)
+	break
+	;;
+esac
+shift
+done
+
+if [[ $# -ge 2 ]]; then
+    printf "$name: extra argument given, expecting 0 or 1 arguments\n"
+    print_usage
+    exit 1
+fi
+
+if [[ $# -eq 1 ]]; then
+    template_dir="$1"
+else
+    template_dir=$(boil_query --template-dir)
+fi
+
+manifest_filename=boil.manifest
+
+if [[ ! -f ${template_dir}/${manifest_filename} ]]; then
+    printf "ERROR: ${template_dir} does not contain a ${manifest_filename} file\n"
+    exit 2
+fi
+
+list_manifest(){
+    indentation="                              "
+    local template_dir="$1"
+    local manifest="${template_dir}/${manifest_filename}"
+    local depth=$2
+    while read entry type; do
+	if [[ -n "${entry}" ]];then
+            printf " ${indentation:0:${depth}}- $entry"
+            if [[ $type = "subtree" ]]; then
+		printf "/\n"
+                list_manifest ${template_dir}/${entry} $(( depth + 2 ))
+            else
+		printf "\n"
+            fi
+	fi
+    done < ${template_dir}/${manifest_filename}
+}
+
+printf "Templates in ${template_dir}/:\n"
+
+list_manifest $template_dir 0
