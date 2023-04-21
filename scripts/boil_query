@@ -1,12 +1,28 @@
 #!/bin/bash
 
 name=boil_query
+script_dir=$(dirname $(realpath "${BASH_SOURCE[0]}"))
 
 print_usage(){
 cat << EOF     
 Usage:                      
-        $name (--template-dir | --config-path | --config)
-                Query boil config for template directory, config path or full config
+        $name QUERY
+	
+	Where QUERY is one of:
+	--install-location
+		The install prefix of boil
+	--template-dir
+		Where template directories are stored
+	--global-config-path
+		The global boil configuration location
+	--user-config-path
+		The user's local boil configuration location
+	--global-config
+		Contents of the global configuration file
+	--user-config
+		Contents of the user's local configuration file
+	--config
+		Contents of both the global and users configuration files
         -h, --help
                 prints this help message
 EOF
@@ -14,10 +30,18 @@ EOF
 
 #-o f: <- expects argument for f
 #-o h <- doesn't expect argument for h
-OPTS=`getopt -o htc --long help,template-dir,config-path,config -n "$name"  -- "$@"`
+OPTS=`getopt -o htcug --long help,install-location,template-dir,global-config-path,user-config-path,global-config,user-config,config -n "$name"  -- "$@"`
 if [ $? != 0 ] ; then echo "Failed to parse args" >&2 ; exit 1 ; fi
 
 eval set -- "$OPTS"
+
+#Global and local paths
+#Global paths are determined by the install prefix
+#Local paths are determined by convention and XDG_CONFIG_HOME
+install_location(){
+    printf "$(realpath ${script_dir}/..)\n"
+}
+
 set_config_dir() {
     config_dir="$HOME/.config"
     if [[ -d "$XDG_CONFIG_HOME" ]]; then
@@ -25,28 +49,56 @@ set_config_dir() {
     fi
 }
 
-config_path(){
-    set_config_dir
-    printf "$config_dir/boil/\n"
+#Config paths
+global_config_path(){
+    #Get the install directory
+    install_dir="$(install_location)"
+    printf "$install_dir/share/boil/config\n"
 }
 
-config(){
+user_config_path(){
+    set_config_dir
+    printf "$config_dir/boil/config\n"
+}
+
+global_config(){
+    cfg_file="$(global_config_path)"
+    if [[ -e ${cfg_file} ]]; then
+        cat ${cfg_file}
+    else
+	printf "#No global config file found at ${cfg_file}\n" >&2
+	exit 2
+    fi
+
+}
+
+user_config(){
     set_config_dir
     cfg_file="$config_dir/boil/config"
     if [[ -e ${cfg_file} ]]; then
         cat ${cfg_file}
     else
-	printf "ERROR: No config file found at ${cfg_file}\n" >&2
+	printf "#No user config file found at ${cfg_file}\n" >&2
 	exit 2
     fi
 }
 
+config(){
+    global_config
+    user_config
+}
+
+source_config()
+{
+    gcfg="$(global_config_path)"
+    ucfg="$(user_config_path)"
+    . $gcfg &> /dev/null
+    . $ucfg &> /dev/null
+}
 
 template_dir(){
     set_config_dir
-    cfg_path=$(config_path)
-    . ${cfg_path}/config
-
+    source_config
     if [[ -d "$BOIL_TEMPLATE_DIR" ]]
     then
         template_dir="$(realpath $BOIL_TEMPLATE_DIR)"
@@ -63,8 +115,24 @@ case "$1" in
     print_usage
     exit 0
     ;;
---config-path)
-    config_path
+--install-location)
+    install_location
+    exit
+    ;;
+--global-config-path)
+    global_config_path
+    exit
+    ;;
+--user-config-path)
+    user_config_path
+    exit
+    ;;
+-g|--global-config)
+    global_config
+    exit
+    ;;
+-u|--user-config)
+    user_config
     exit
     ;;
 -c|--config)

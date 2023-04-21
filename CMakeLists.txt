@@ -10,8 +10,8 @@ set(BOIL_SCRIPTS
 #Install the executables
 install(PROGRAMS ${BOIL_SCRIPTS} DESTINATION bin)
 
-#Options for config directory location? Or at least check XDG_CONFIG_HOME... user or system level install will be very different here...
-install(FILES defaults/config DESTINATION ~/.config/boil)
+#Install the global config as the default in share
+install(FILES defaults/config DESTINATION share/boil)
 
 #Install base templates
 

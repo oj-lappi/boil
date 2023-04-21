@@ -22,8 +22,10 @@ check_dependency(){
 check_dependency git
 
 #Read rc file (prototype config file)
-config_path=$(boil_query --config-path)
-. "${config_path}/config"
+global_config_path=$(boil_query --global-config-path)
+user_config_path=$(boil_query --user-config-path)
+. "${global_config_path}/config"
+. "${user_config_path}/config"
 
 template_dir=$(boil_query --template-dir)
 
