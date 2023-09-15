@@ -18,6 +18,7 @@ if [ $? != 0 ] ; then echo "Failed to parse args" >&2 ; exit 1 ; fi
 
 eval set -- "$OPTS"
 
+#TODO: use the setup from plotron to connect the subcommands to this main command
 
 while true;do
 case "$1" in
