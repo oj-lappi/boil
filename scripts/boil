@@ -80,6 +80,29 @@ then
 	mv "$project_name" "${project_name}.bak"
 fi
 
+#TODO: currently, there is only one template_dir, but we want to loop through all directories in the PATH
+#PROBLEM: how do we keep template directories updated in this case?
+#
+#A template directory can either be local or a repository
+#Three solutions:
+# 1) each directory has a repository linked to it
+# 2) directories are only in a BOIL_TEMPLATE_PATH, we check if they are git repositories and update if they are
+# 3) We have git repositories separate from regular directories
+
+# I like 2) best. The directories in BOIL_TEMPLATE_PATH can have names, which makes it easier to refer to them
+# This name could be in the boil.manifest.
+# The name could also be a namespace specifier to boil, if there are multiple templates with the same template path in two template repos
+
+# Could then refer either to the full path or the name (or order in the PATH).
+# And perform e.g. the following actions:
+#  - change git remote
+#  - make a git repo (? Might be easier simply to let the user do this)
+#  - stat if it is a git repo
+#  - pull
+#  - edit (?)
+
+#Each entry in the PATH would be a separate template package <- package, yes! (or module?)
+
 cp -R "$template_dir/$template" $project_name
 
 if rename --version  | grep util-linux &> /dev/null
